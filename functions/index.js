@@ -9,15 +9,6 @@ const {
 const http = require('http');
 const host = '18.221.4.160';
 
-function sleep(milliseconds) {
-  var start = new Date().getTime();
-  for (var i = 0; i < 1e7; i++) {
-    if ((new Date().getTime() - start) > milliseconds){
-      break;
-    }
-  }
-}
-
 // Import the firebase-functions package for deployment.
 const functions = require('firebase-functions');
 
@@ -42,8 +33,9 @@ app.intent('actions_intent_PERMISSION', (conv, params, permissionGranted) => {
     conv.ask(`Ok, no hay problema. ¿Qué deseas saber?`);
   } else {
     conv.data.userName = conv.user.name.display;
-    name = conv.user.name.display;
-    conv.ask(`Gracias, ${conv.data.userName}. ¿Qué deseas saber?`);
+    var fullName = conv.user.name.display;
+    name = fullName.substr(0,fullName.indexOf(' '));;
+    conv.ask(`Gracias, ${name}. ¿Qué deseas saber?`);
   }
 });
 
