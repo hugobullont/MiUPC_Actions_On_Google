@@ -87,7 +87,12 @@ app.intent('ClasesPendientes', (conv, params)=>{
         if (i != output.length -1){
           mensaje += `A las ${hora} horas tienes ${curso} en el ${salon}. `
         } else {
-          mensaje += `Y a las ${hora} horas tienes ${curso} en el ${salon}. Eso es todo.`
+          if(output.length > 1){
+            mensaje += `Y a las ${hora} horas tienes ${curso} en el ${salon}. Eso es todo.`
+          } else {
+            mensaje += `A las ${hora} horas tienes ${curso} en el ${salon}. Eso es todo.`
+          }
+          
         }
         
       }
