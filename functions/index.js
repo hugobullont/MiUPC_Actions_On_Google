@@ -40,6 +40,8 @@ app.intent('actions_intent_PERMISSION', (conv, params, permissionGranted) => {
   }
 });
 
+
+
 app.intent('MasInfoCursos', (conv,{childCurso})=>{
   
   if(childCurso = 'notas'){
@@ -63,6 +65,35 @@ app.intent('MasInfoCursos', (conv,{childCurso})=>{
   } else {
     conv.close('<speak>No hemos implementado esa opción.</speak>')
   }
+});
+
+app.intent('ClasesPendientes', (conv, params)=>{
+  return callAPIClasesPendientes().then((output) => {
+    console.log(output);
+    if (output.hasOwnProperty('message')){
+      conv.close('<speak>No tienes más clases el día de hoy.</speak>')
+    } else {
+      var saludo = '';
+      if(conv.data.userName=='name'){
+        saludo = 'Estas son tus clases pendientes para el día de hoy: '
+      } else {
+        saludo = `Ok ${conv.data.userName}, estas son tus clases pendientes para el día de hoy: `
+      }
+      var mensaje = '';
+      for(var i = 0; i<output.length; i++){
+        var curso = output[i].Curso.nombre;
+        var salon = output[i].Clase.salon;
+        var hora = output[i].Clase.horaInicio/100;
+        if (i != output.length -1){
+          mensaje += `A las ${hora} horas tienes ${curso} en el ${salon}. `
+        } else {
+          mensaje += `Y a las ${hora} horas tienes ${curso} en el ${salon}. Eso es todo.`
+        }
+        
+      }
+      conv.close(`<speak>${saludo}${mensaje}</speak>`);
+    }
+  });
 });
 
 app.intent('NotasAcumuladas', (conv, params) => {
@@ -185,6 +216,45 @@ function callAPINotasAcumuladas() {
     res.on('error', (error) => {
       console.log(`Error calling the API: ${error}`)
       reject();
+      });
+    });
+  });
+}
+
+function callAPIClasesPendientes() {
+  return new Promise((resolve, reject) => {
+    var d = new Date();
+
+    var utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+    var offset = -5;
+    var local = new Date(utc + (3600000*offset));
+    var hours = local.getHours();
+    console.log(hours);
+    var minutes = local.getMinutes();
+    console.log(minutes);
+
+    var days = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sábado'];
+    var dayName = days[local.getDay()];
+    var urlHour = hours*100 + minutes;
+
+    let path = "/clasesPendientes/" + dayName + "/" + urlHour.toString();
+    console.log(path);
+    var respa = encodeURI(path);
+
+    http.get({host: host, path: respa}, (res) => {
+      let body = '';
+        res.on('data', (d) => { body += d; }); // store each response chunk
+              res.on('end', () => {
+                  // After all the data has been received parse the JSON for desired data
+                  let response = JSON.parse(body);
+                  let output = response;
+
+                  //copy required response attributes to output here
+                  resolve(output);
+      });
+      res.on('error', (error) => {
+        console.log(`Error calling the API: ${error}`)
+        reject();
       });
     });
   });
