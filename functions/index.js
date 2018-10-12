@@ -44,7 +44,7 @@ app.intent('actions_intent_PERMISSION', (conv, params, permissionGranted) => {
 
 app.intent('MasInfoCursos', (conv,{childCurso})=>{
   
-  if(childCurso = 'notas'){
+  if(childCurso == 'notas'){
     return callAPINotasPorCurso(conv.data.idCurso).then((output) => {
       console.log(output);
       var cursoName = conv.data.nameCurso;
@@ -63,7 +63,7 @@ app.intent('MasInfoCursos', (conv,{childCurso})=>{
       conv.close(`<speak>${saludo}${mensaje}</speak>`);
     });
   } else {
-    conv.close('<speak>No hemos implementado esa opción.</speak>')
+    conv.close('<speak>No hemos implementado esa opción.</speak>');
   }
 });
 
@@ -99,6 +99,31 @@ app.intent('ClasesPendientes', (conv, params)=>{
       conv.close(`<speak>${saludo}${mensaje}</speak>`);
     }
   });
+});
+
+app.intent('ReservarRecurso', (conv,{recurso, number}) => {
+  console.log(recurso);
+  console.log(number);
+
+  var pc = Math.floor(Math.random() * (81 - 1)) + 1;
+
+  if(recurso == 'computadora'){
+
+    /*if (number==19){
+      conv.close('<speak>No hay computadoras disponibles.</speak>');
+    } else {
+      conv.close(`<speak>La computadora ${pc} ya está reservada para las ${number} horas.</speak>`);
+    }*/
+    return callAPIReservarComputadora(number).then((output) => {
+      if(output.code == 1){
+        conv.close(`<speak>La computadora 2 ya está reservada para las ${number} horas.</speak>`);
+      } else {
+        conv.close('<speak>No hay computadoras disponibles.</speak>');
+      }
+    });
+  } else {
+    conv.close('<speak>No hemos implementado esa opción.</speak>');
+  }
 });
 
 app.intent('NotasAcumuladas', (conv, params) => {
@@ -301,6 +326,52 @@ function callAPIClaseActual() {
         reject();
       });
     });
+  });
+}
+
+function callAPIReservarComputadora(horas){
+  return new Promise((resolve, reject) => {
+    var sede = 'MO';
+    var computadora = 2;
+
+    let path = "/computadoras/" + sede + "/" + computadora + "/" + horas;
+    var respa = encodeURI(path);
+
+    var options = {
+      host: host,
+      port: 80,
+      path: respa,
+      method: 'PUT'
+    };
+    console.log(options);
+    var req = http.request(options, function(res) {
+        // reject on bad status
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+            return reject(new Error('statusCode=' + res.statusCode));
+        }
+        // cumulate data
+        var body = [];
+        res.on('data', function(chunk) {
+            body.push(chunk);
+        });
+        // resolve on end
+        res.on('end', function() {
+            try {
+                body = JSON.parse(Buffer.concat(body).toString());
+            } catch(e) {
+                reject(e);
+            }
+            resolve(body);
+        });
+    });
+    // reject on request error
+    req.on('error', function(err) {
+        // This is not a "Second reject", just a different sort of failure
+        reject(err);
+    });
+    //req.write('');
+    // IMPORTANT
+    req.end();
   });
 }
 
