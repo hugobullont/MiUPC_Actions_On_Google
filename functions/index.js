@@ -101,11 +101,11 @@ app.intent('ClasesPendientes', (conv, params)=>{
   });
 });
 
-app.intent('ReservarRecurso', (conv,{recurso, number}) => {
+app.intent('ReservarRecurso', (conv,{recurso, number, sede}) => {
   console.log(recurso);
   console.log(number);
 
-  var pc = Math.floor(Math.random() * (81 - 1)) + 1;
+  var pc = Math.floor(Math.random() * (41 - 1)) + 1;
 
   if(recurso == 'computadora'){
 
@@ -114,9 +114,9 @@ app.intent('ReservarRecurso', (conv,{recurso, number}) => {
     } else {
       conv.close(`<speak>La computadora ${pc} ya está reservada para las ${number} horas.</speak>`);
     }*/
-    return callAPIReservarComputadora(number).then((output) => {
+    return callAPIReservarComputadora(number,sede,pc).then((output) => {
       if(output.code == 1){
-        conv.close(`<speak>La computadora 2 ya está reservada para las ${number} horas.</speak>`);
+        conv.close(`<speak>La computadora ${pc} en ${sede} ya está reservada para las ${number} horas.</speak>`);
       } else {
         conv.close('<speak>No hay computadoras disponibles.</speak>');
       }
@@ -329,12 +329,12 @@ function callAPIClaseActual() {
   });
 }
 
-function callAPIReservarComputadora(horas){
+function callAPIReservarComputadora(horas,sede,pc){
   return new Promise((resolve, reject) => {
-    var sede = 'MO';
-    var computadora = 2;
+    //var sede = 'MO';
+    //var computadora = 2;
 
-    let path = "/computadoras/" + sede + "/" + computadora + "/" + horas;
+    let path = "/computadoras/" + sede + "/" + pc + "/" + horas;
     var respa = encodeURI(path);
 
     var options = {
