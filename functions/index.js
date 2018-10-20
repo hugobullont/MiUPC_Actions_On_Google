@@ -47,11 +47,12 @@ app.intent('actions_intent_PERMISSION', (conv, params, permissionGranted) => {
 
 app.intent('MasInfoCursos', (conv,{childCurso})=>{
   const name = "Alfredo";
-  
+  var cursoName = conv.data.nameCurso;
+
   if(childCurso == 'notas'){
     return callAPINotasPorCurso(conv.data.idCurso).then((output) => {
       console.log(output);
-      var cursoName = conv.data.nameCurso;
+      
       var saludo = `Las notas para ${cursoName} son: `;
       var mensaje = '';
 
@@ -66,9 +67,23 @@ app.intent('MasInfoCursos', (conv,{childCurso})=>{
 
       conv.ask(`<speak>${saludo}${mensaje} ¿Deseas hacer otra cosa?</speak>`);
     });
-  } else {
-    conv.ask('<speak>No hemos implementado esa opción. ¿Deseas hacer otra cosa?</speak>');
+  } 
+
+  if(childCurso == 'promedio'){
+    return callAPINotasAcumuladas().then((output) => {
+      console.log(output);
+      var promedioCurso;
+      for (var i = 0; i<output.length; i++){
+        if(output[i].nombreCurso == cursoName){
+          promedioCurso = output[i];
+        }
+      }
+      var saludo = `El promedio para ${cursoName}, `;
+      var mensaje = `al ${promedioCurso.porcentaje} por ciento, es ${promedioCurso.notaAcumulada}.`;
+      conv.ask(`<speak>${saludo}${mensaje} ¿Deseas hacer otra cosa?</speak>`);
+    });
   }
+
 });
 
 app.intent('ClasesPendientes', (conv, params)=>{
@@ -85,6 +100,33 @@ app.intent('ClasesPendientes', (conv, params)=>{
         saludo = `Ok ${name}, estas son tus clases pendientes para el día de hoy: `
       }
       var mensaje = '';
+
+      var cursosEnOrden = output;
+
+      console.log(output);
+      cursosEnOrden.sort(function(a, b){
+        var x = a;
+        var y = b;
+        if (x.Clase.horaInicio < y.Clase.horaInicio) {return -1;}
+        if (x.Clase.horaInicio > y.Clase.horaInicio) {return 1;}
+        return 0;
+    });
+
+      console.log(cursosEnOrden);
+      /*
+      var cursosEnOrden = [];
+      var auxMenor;
+      cursosEnOrden[1]= output[1];
+      for (var i= 0; i<output.length;i++){
+        for(var j = 0; j<output.length;j++)
+          if (output[j].horaInicio < auxMenor.horaInicio && auxMenor.horaInicio > cursosEnOrden[i].horaInicio){
+            auxMenor.horaInicio = output[j].horaInicio;
+          }
+          cursosEnOrden[i].horaInicio = auxMenor.horaInicio;
+      }
+      */
+
+      /*
       for(var i = 0; i<output.length; i++){
         var curso = output[i].Curso.nombre;
         var salon = output[i].Clase.salon;
@@ -101,6 +143,25 @@ app.intent('ClasesPendientes', (conv, params)=>{
         }
         
       }
+
+      */
+      for(var i = 0; i<cursosEnOrden.length; i++){
+        var curso = cursosEnOrden[i].Curso.nombre;
+        var salon = cursosEnOrden[i].Clase.salon;
+        var hora = cursosEnOrden[i].Clase.horaInicio/100;
+        if (i != cursosEnOrden.length -1){
+          mensaje += `A las ${hora} horas tienes ${curso} en el ${salon}. `
+        } else {
+          if(cursosEnOrden.length > 1){
+            mensaje += `Y a las ${hora} horas tienes ${curso} en el ${salon}. Eso es todo.`
+          } else {
+            mensaje += `A las ${hora} horas tienes ${curso} en el ${salon}. Eso es todo.`
+          }
+          
+        }
+        
+      }
+
       conv.ask(`<speak>${saludo}${mensaje} ¿Deseas hacer otra cosa?</speak>`);
     }
   });
