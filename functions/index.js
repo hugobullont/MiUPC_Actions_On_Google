@@ -2,8 +2,8 @@
 
 // Import the Dialogflow module from the Actions on Google client library.
 const {
-  dialogflow,
-  Permission
+  dialogflow/*,
+  Permission*/
 } = require('actions-on-google');
 
 const http = require('http');
@@ -15,19 +15,22 @@ const functions = require('firebase-functions');
 // Instantiate the Dialogflow client.
 const app = dialogflow({debug: true});
 
-var name = "name";
+
 
 // Handle the Dialogflow intent named 'Bienveida'.
 // The intent collects a parameter named 'color'.
 app.intent('Bienvenida', (conv) => {
-  conv.ask(new Permission({
+  const name = "Alfredo";
+  conv.ask(`Hola ${name}, ¿deseas información sobre tu horario, tus notas o reservar un recurso?`);
+  /*conv.ask(new Permission({
     context: 'Hola, para tener una mejor comunicación',
     permissions: 'NAME'
-  }));
+  }));*/
 });
 
 // Handle the Dialogflow intent named 'actions_intent_PERMISSION'. If user
 // agreed to PERMISSION prompt, then boolean value 'permissionGranted' is true.
+/*
 app.intent('actions_intent_PERMISSION', (conv, params, permissionGranted) => {
   if (!permissionGranted) {
     conv.ask(`Ok, no hay problema. ¿Qué deseas saber?`);
@@ -39,10 +42,11 @@ app.intent('actions_intent_PERMISSION', (conv, params, permissionGranted) => {
     conv.ask(`Gracias, ${name}. ¿Qué deseas saber?`);
   }
 });
-
+*/
 
 
 app.intent('MasInfoCursos', (conv,{childCurso})=>{
+  const name = "Alfredo";
   
   if(childCurso == 'notas'){
     return callAPINotasPorCurso(conv.data.idCurso).then((output) => {
@@ -60,24 +64,25 @@ app.intent('MasInfoCursos', (conv,{childCurso})=>{
         }
       }
 
-      conv.close(`<speak>${saludo}${mensaje}</speak>`);
+      conv.ask(`<speak>${saludo}${mensaje} ¿Deseas hacer otra cosa?</speak>`);
     });
   } else {
-    conv.close('<speak>No hemos implementado esa opción.</speak>');
+    conv.ask('<speak>No hemos implementado esa opción. ¿Deseas hacer otra cosa?</speak>');
   }
 });
 
 app.intent('ClasesPendientes', (conv, params)=>{
+  const name = "Alfredo";
   return callAPIClasesPendientes().then((output) => {
     console.log(output);
     if (output.hasOwnProperty('message')){
-      conv.close('<speak>No tienes más clases el día de hoy.</speak>')
+      conv.ask('<speak>No tienes más clases el día de hoy. ¿Deseas hacer otra cosa?</speak>')
     } else {
       var saludo = '';
-      if(conv.data.userName=='name'){
+      if(name=='name'){
         saludo = 'Estas son tus clases pendientes para el día de hoy: '
       } else {
-        saludo = `Ok ${conv.data.userName}, estas son tus clases pendientes para el día de hoy: `
+        saludo = `Ok ${name}, estas son tus clases pendientes para el día de hoy: `
       }
       var mensaje = '';
       for(var i = 0; i<output.length; i++){
@@ -96,16 +101,34 @@ app.intent('ClasesPendientes', (conv, params)=>{
         }
         
       }
-      conv.close(`<speak>${saludo}${mensaje}</speak>`);
+      conv.ask(`<speak>${saludo}${mensaje} ¿Deseas hacer otra cosa?</speak>`);
     }
   });
 });
 
 app.intent('ReservarRecurso', (conv,{recurso, number, sede}) => {
+  const name = "Alfredo";
   console.log(recurso);
   console.log(number);
 
   var pc = Math.floor(Math.random() * (41 - 1)) + 1;
+  var sedeName = '';
+
+  switch(sede){
+    case 'MO': 
+      sedeName = 'Monterrico';
+      break;
+      case 'VI': 
+      sedeName = 'Villa';
+      break;
+      case 'SI': 
+      sedeName = 'San Isidro';
+      break;
+      case 'SM': 
+      sedeName = 'San Miguel';
+      break;
+
+  }
 
   if(recurso == 'computadora'){
 
@@ -116,24 +139,25 @@ app.intent('ReservarRecurso', (conv,{recurso, number, sede}) => {
     }*/
     return callAPIReservarComputadora(number,sede,pc).then((output) => {
       if(output.code == 1){
-        conv.close(`<speak>La computadora ${pc} en ${sede} ya está reservada para las ${number} horas.</speak>`);
+        conv.ask(`<speak>Puedes utilizar la computadora ${pc} en ${sedeName} a partir de las ${number} horas. ¿Deseas hacer otra cosa?</speak>`);
       } else {
-        conv.close('<speak>No hay computadoras disponibles.</speak>');
+        conv.ask('<speak>No hay computadoras disponibles. ¿Deseas hacer otra cosa?</speak>');
       }
     });
   } else {
-    conv.close('<speak>No hemos implementado esa opción.</speak>');
+    conv.ask('<speak>No hemos implementado esa opción. ¿Deseas hacer otra cosa?</speak>');
   }
 });
 
 app.intent('NotasAcumuladas', (conv, params) => {
+  const name = "Alfredo";
   return callAPINotasAcumuladas().then((output) => {
     console.log(output);
     var saludo = '';
-    if(conv.data.userName=='name'){
+    if(name=='name'){
       saludo = 'Estas son tus notas acumuladas por curso: '
     } else {
-      saludo = `Ok ${conv.data.userName}, estas son tus notas acumuladas por curso: `
+      saludo = `Ok ${name}, estas son tus notas acumuladas por curso: `
     }
     var mensaje = '';
     console.log(output.length);
@@ -147,13 +171,14 @@ app.intent('NotasAcumuladas', (conv, params) => {
       mensaje += `En ${curso} tienes, al ${porcentaje} por ciento, ${notaAcumulada}. `; 
       console.log(mensaje);
     }
-    conv.close(`<speak>${saludo}${mensaje}</speak>`);
+    conv.ask(`<speak>${saludo}${mensaje} ¿Deseas hacer otra cosa?</speak>`);
   });
 });
 
 // Handle the Dialogflow intent named 'ConvertirDolSol'.
 // The intent collects a parameter named 'number'.
 app.intent('ClaseActual', (conv,params) => {
+  const name = "Alfredo";
   return callAPIClaseActual().then((output) => {
     console.log(output);
     if (output.hasOwnProperty('message')){
@@ -177,7 +202,7 @@ app.intent('ClaseActual', (conv,params) => {
       var hourComplete = hours*100 + minutes;
       var minutesToClass = (hora*100 - 40 - hourComplete);
       
-      name = conv.data.userName;
+      //name = conv.data.userName;
       if(name=="name"){
         if (minutesToClass < 60){
           if(minutesToClass > 0){
