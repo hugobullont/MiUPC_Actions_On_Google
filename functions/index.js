@@ -15,7 +15,15 @@ const functions = require('firebase-functions');
 // Instantiate the Dialogflow client.
 const app = dialogflow({debug: true});
 
+//De 17 convertir a 5 de la tarde. 20 a 8 de la noche. 8 a 8 de la mañana.
+function numberToString(numberHour){
+  return stringHour;
+}
 
+// de 5 de la tarde a 17... etc
+function stringToNumber(stringHour){
+  return numberHour;
+}
 
 // Handle the Dialogflow intent named 'Bienveida'.
 // The intent collects a parameter named 'color'.
@@ -53,7 +61,7 @@ app.intent('MasInfoCursos', (conv,{childCurso})=>{
     return callAPINotasPorCurso(conv.data.idCurso).then((output) => {
       console.log(output);
       
-      var saludo = `Las notas para ${cursoName} son: `;
+      var saludo = `Las notas para ${cursoName} son las siguientes: `;
       var mensaje = '';
 
       for (var i = 0; i<output.length; i++){
@@ -172,7 +180,7 @@ app.intent('ReservarRecurso', (conv,{recurso, number, sede}) => {
   console.log(recurso);
   console.log(number);
 
-  var pc = Math.floor(Math.random() * (41 - 1)) + 1;
+  var pc = Math.floor(Math.random() * (11 - 1)) + 1;
   var sedeName = '';
 
   switch(sede){
