@@ -16,7 +16,7 @@ const functions = require('firebase-functions');
 const app = dialogflow({debug: true});
 
 //De "17" convertir a "5 de la tarde", "20" a "8 de la noche", "8" a "8 de la mañana" ... etc
-function numberToString(numberHour){
+function numberHourToString(numberHour){
   //  Las partes del día se dividen en: 
   //    Mañana    : de [6am a 12[
   //    Tarde     : de [12pm a 19[
@@ -32,7 +32,11 @@ function numberToString(numberHour){
       stringHour = (numberHour) + " de la tarde";
         break;
     case (numberHour >= 12 && numberHour < 19):
+      if(numberHour-12 == 1){
+        stringHour = "una de la tarde";
+      } else {
         stringHour = (numberHour-12) + " de la tarde";
+      }
         break;
     case (numberHour >= 19 && numberHour <= 24):
         stringHour = (numberHour-12) + " de la noche";
@@ -156,49 +160,32 @@ app.intent('ClasesPendientes', (conv, params)=>{
     });
 
       console.log(cursosEnOrden);
-      /*
-      var cursosEnOrden = [];
-      var auxMenor;
-      cursosEnOrden[1]= output[1];
-      for (var i= 0; i<output.length;i++){
-        for(var j = 0; j<output.length;j++)
-          if (output[j].horaInicio < auxMenor.horaInicio && auxMenor.horaInicio > cursosEnOrden[i].horaInicio){
-            auxMenor.horaInicio = output[j].horaInicio;
-          }
-          cursosEnOrden[i].horaInicio = auxMenor.horaInicio;
-      }
-      */
-
-      /*
-      for(var i = 0; i<output.length; i++){
-        var curso = output[i].Curso.nombre;
-        var salon = output[i].Clase.salon;
-        var hora = output[i].Clase.horaInicio/100;
-        if (i != output.length -1){
-          mensaje += `A las ${hora} horas tienes ${curso} en el ${salon}. `
-        } else {
-          if(output.length > 1){
-            mensaje += `Y a las ${hora} horas tienes ${curso} en el ${salon}. Eso es todo.`
-          } else {
-            mensaje += `A las ${hora} horas tienes ${curso} en el ${salon}. Eso es todo.`
-          }
-          
-        }
-        
-      }
-
-      */
       for(var i = 0; i<cursosEnOrden.length; i++){
         var curso = cursosEnOrden[i].Curso.nombre;
         var salon = cursosEnOrden[i].Clase.salon;
         var hora = cursosEnOrden[i].Clase.horaInicio/100;
+        var horaString = numberHourToString(hora);
         if (i != cursosEnOrden.length -1){
-          mensaje += `A las ${hora} horas tienes ${curso} en el ${salon}. `
+          if(hora != 13){
+            mensaje += `A las ${horaString} tienes ${curso} en el ${salon}. `
+          } else {
+            mensaje += `A la ${horaString} tienes ${curso} en el ${salon}. `
+          }
+          
         } else {
           if(cursosEnOrden.length > 1){
-            mensaje += `Y a las ${hora} horas tienes ${curso} en el ${salon}. Eso es todo.`
+            if(hora != 13){
+              mensaje += `Y a las ${horaString} tienes ${curso} en el ${salon}. Eso es todo.`
+            } else {
+              mensaje += `Y a la ${horaString} tienes ${curso} en el ${salon}. Eso es todo`
+            }
+            
           } else {
-            mensaje += `A las ${hora} horas tienes ${curso} en el ${salon}. Eso es todo.`
+            if(hora != 13){
+              mensaje += `A las ${horaString} tienes ${curso} en el ${salon}. Eso es todo.`
+            } else {
+              mensaje += `A la ${horaString} tienes ${curso} en el ${salon}. Eso es todo.`
+            }
           }
           
         }
@@ -210,10 +197,15 @@ app.intent('ClasesPendientes', (conv, params)=>{
   });
 });
 
-app.intent('ReservarRecurso', (conv,{recurso, number, sede}) => {
+app.intent('ReservarRecurso', (conv,{recurso, number, sede, horaDelDia}) => {
   const name = "Alfredo";
   console.log(recurso);
   console.log(number);
+
+  var stringHour = number + " " + horaDelDia;
+  console.log(stringHour);
+  var numberHour = stringToNumber(stringHour);
+  console.log(numberHour);
 
   var pc = Math.floor(Math.random() * (11 - 1)) + 1;
   var sedeName = '';
@@ -235,15 +227,17 @@ app.intent('ReservarRecurso', (conv,{recurso, number, sede}) => {
   }
 
   if(recurso == 'computadora'){
-
-    /*if (number==19){
-      conv.close('<speak>No hay computadoras disponibles.</speak>');
+    var hourString;
+    var preHourString = numberHourToString(numberHour);
+    if(numberHour!=13){
+      hourString = `las ${preHourString}`;
     } else {
-      conv.close(`<speak>La computadora ${pc} ya está reservada para las ${number} horas.</speak>`);
-    }*/
-    return callAPIReservarComputadora(number,sede,pc).then((output) => {
+      hourString = `la ${preHourString}`;
+    }
+
+    return callAPIReservarComputadora(numberHour,sede,pc).then((output) => {
       if(output.code == 1){
-        conv.ask(`<speak>Puedes utilizar la computadora ${pc} en ${sedeName} a partir de las ${number} horas. ¿Deseas hacer otra cosa?</speak>`);
+        conv.ask(`<speak>Puedes utilizar la computadora ${pc} en ${sedeName} a partir de ${hourString}. ¿Deseas hacer otra cosa?</speak>`);
       } else {
         conv.ask('<speak>No hay computadoras disponibles. ¿Deseas hacer otra cosa?</speak>');
       }
@@ -306,6 +300,14 @@ app.intent('ClaseActual', (conv,params) => {
       var hourComplete = hours*100 + minutes;
       var minutesToClass = (hora*100 - 40 - hourComplete);
       
+      var hourString;
+      var preHourString = numberHourToString(hora);
+      if(hora!=13){
+        hourString = `A las ${preHourString}`;
+      } else {
+        hourString = `A la ${preHourString}`;
+      }
+
       //name = conv.data.userName;
       if(name=="name"){
         if (minutesToClass < 60){
@@ -315,7 +317,7 @@ app.intent('ClaseActual', (conv,params) => {
             conv.ask(`<speak>Ya deberías estar en ${curso} en el ${salon}.<emphasis level="strong">Te quedan ${faltas} faltas.</emphasis> ¿Deseas tener más información de este curso?</speak>`);
           } 
         } else {
-          conv.ask(`<speak>A las ${hora} horas tienes ${curso} en el ${salon}.<emphasis level="strong">Te quedan ${faltas} faltas.</emphasis> ¿Deseas tener más información de este curso?</speak>`);
+          conv.ask(`<speak> ${hourString} tienes ${curso} en el ${salon}.<emphasis level="strong">Te quedan ${faltas} faltas.</emphasis> ¿Deseas tener más información de este curso?</speak>`);
         }
       } else {
         if (minutesToClass < 60){
@@ -325,7 +327,7 @@ app.intent('ClaseActual', (conv,params) => {
             conv.ask(`<speak>${name}, ya deberías estar en ${curso} en el ${salon}.<emphasis level="strong">Te quedan ${faltas} faltas.</emphasis> ¿Deseas tener más información de este curso?</speak>`);
           }
         } else {
-          conv.ask(`<speak>${name}, a las ${hora} horas tienes ${curso} en el ${salon}.<emphasis level="strong">Te quedan ${faltas} faltas.</emphasis> ¿Deseas tener más información de este curso?</speak>`);
+          conv.ask(`<speak>${name}, ${hourString} tienes ${curso} en el ${salon}.<emphasis level="strong">Te quedan ${faltas} faltas.</emphasis> ¿Deseas tener más información de este curso?</speak>`);
         }
       }
     }  
