@@ -280,7 +280,7 @@ app.intent('ClaseActual', (conv,params) => {
   return callAPIClaseActual().then((output) => {
     console.log(output);
     if (output.hasOwnProperty('message')){
-      conv.close('<speak>No tienes más clases el día de hoy.</speak>')
+      conv.ask('<speak>No tienes más clases el día de hoy. ¿Deseas hacer otra cosa?</speak>')
     } else {
       conv.data.idCurso = output.Curso._id;
       conv.data.nameCurso = output.Curso.nombre;
