@@ -68,7 +68,7 @@ function stringToNumber(stringHour){
 // The intent collects a parameter named 'color'.
 app.intent('Bienvenida', (conv) => {
   const name = "Alfredo";
-  conv.ask(`Hola ${name}, ¿deseas información sobre tu horario, tus notas o reservar un recurso?`);
+  conv.ask(`Hola ${name}, estas son las acciones que puedes pedir: "¿Qué clase tengo ahora?", "¿Cuáles son mis clases pendientes de hoy?", "¿Cuáles son mis promedios acumulados?", "Reserva una computadora." `);
   /*conv.ask(new Permission({
     context: 'Hola, para tener una mejor comunicación',
     permissions: 'NAME'
