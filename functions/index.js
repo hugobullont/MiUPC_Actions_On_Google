@@ -17,7 +17,11 @@ const app = dialogflow({debug: true});
 
 //De "17" convertir a "5 de la tarde", "20" a "8 de la noche", "8" a "8 de la mañana" ... etc
 function numberToString(numberHour){
-  // Las  partes del día se dividen en: Mañana: de [6am a 12[, Tarde: de [12pm a 19[ ,Noche: de [19pm a 24[ y  Madrugada  de [24am a 6[.
+  //  Las partes del día se dividen en: 
+  //    Mañana    : de [6am a 12[
+  //    Tarde     : de [12pm a 19[
+  //    Noche     : de [19pm a 24[
+  //    Madrugada : de [24am a 6[
   var stringHour;
   switch(numberHour != null)
   {
