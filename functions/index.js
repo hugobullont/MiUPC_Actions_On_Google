@@ -15,30 +15,44 @@ const functions = require('firebase-functions');
 // Instantiate the Dialogflow client.
 const app = dialogflow({debug: true});
 
-//De 17 convertir a 5 de la tarde. 20 a 8 de la noche. 8 a 8 de la mañana.
+//De "17" convertir a "5 de la tarde", "20" a "8 de la noche", "8" a "8 de la mañana" ... etc
 function numberToString(numberHour){
-  // Las  partes del día se dividen en Mañana: de 6am a 12, Tarde: de 12pm a 19 ,Noche: de 19pm a 24 y  Madrugada  de 24am a 6.
+  // Las  partes del día se dividen en: Mañana: de [6am a 12[, Tarde: de [12pm a 19[ ,Noche: de [19pm a 24[ y  Madrugada  de [24am a 6[.
   var stringHour;
-    switch(numberHour != null)
-    {
-      case (numberHour < 12):
-          stringHour = numberHour + " de la mañana";
-          break;
-      case (numberHour == 12):
-        stringHour = (numberHour) + " de la tarde";
-          break;
-      case (numberHour >= 12 && numberHour < 19):
-          stringHour = (numberHour-12) + " de la tarde";
-          break;
-      case (numberHour >= 19 && numberHour <= 24):
-          stringHour = (numberHour-12) + " de la noche";
-          break;
-    }
-    return stringHour;
+  switch(numberHour != null)
+  {
+    case (numberHour < 12):
+        stringHour = numberHour + " de la mañana";
+        break;
+    case (numberHour == 12):
+      stringHour = (numberHour) + " de la tarde";
+        break;
+    case (numberHour >= 12 && numberHour < 19):
+        stringHour = (numberHour-12) + " de la tarde";
+        break;
+    case (numberHour >= 19 && numberHour <= 24):
+        stringHour = (numberHour-12) + " de la noche";
+        break;
   }
+  return stringHour;
+}
 
-// de 5 de la tarde a 17... etc
+// de "5 de la tarde" a "17" ... etc
 function stringToNumber(stringHour){
+  var numberHour;
+  var arrayDeStringHour = stringHour.split(" ");
+  var stringHourToInt = parseInt(arrayDeStringHour[0]);
+  switch(stringHourToInt != 0)
+  {
+    case (	(stringHourToInt < 12 && arrayDeStringHour[3]=="mañana") || 
+			(stringHourToInt == 12 && arrayDeStringHour[3]=="tarde")):
+      numberHour = stringHourToInt;
+        break;
+    case (	(stringHourToInt < 12 && arrayDeStringHour[3] == "tarde" || arrayDeStringHour[3] == "noche") || 
+			(stringHourToInt == 12 && arrayDeStringHour[3]=="noche")):
+      numberHour = stringHourToInt + 12;
+        break;
+  }
   return numberHour;
 }
 
