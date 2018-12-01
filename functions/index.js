@@ -7,7 +7,7 @@ const {
 } = require('actions-on-google');
 
 const http = require('http');
-const host = '18.221.4.160';
+const host = '18.219.108.219';
 
 // Import the firebase-functions package for deployment.
 const functions = require('firebase-functions');
